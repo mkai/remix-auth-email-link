@@ -50,6 +50,10 @@ export type MagicLinkPayload = {
  */
 export type EmailLinkStrategyOptions<User> = {
   /**
+   * @default undefined
+   */
+   domainUrl?: string
+  /**
    * The endpoint the user will go after clicking on the email link.
    * A whole URL is not required, the pathname is enough, the strategy will
    * detect the host of the request and use it to build the URL.
@@ -140,6 +144,8 @@ export class EmailLinkStrategy<User> extends Strategy<
 
   private readonly emailField: string = 'email'
 
+  private readonly domainUrl: string | undefined
+
   private readonly callbackURL: string
 
   private readonly sendEmail: SendEmailFunction<User>
@@ -166,6 +172,7 @@ export class EmailLinkStrategy<User> extends Strategy<
   ) {
     super(verify)
     this.sendEmail = options.sendEmail
+    this.domainUrl = options.domainUrl
     this.callbackURL = options.callbackURL ?? '/magic'
     this.secret = options.secret
     this.sessionErrorKey = options.sessionErrorKey ?? 'auth:error'
@@ -313,6 +320,10 @@ export class EmailLinkStrategy<User> extends Strategy<
   }
 
   private getDomainURL(request: Request): string {
+    if (this.domainUrl) {
+      return this.domainUrl
+    }
+
     const host =
       request.headers.get('X-Forwarded-Host') ?? request.headers.get('host')
 
